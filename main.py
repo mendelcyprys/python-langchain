@@ -161,7 +161,7 @@ parser = JsonOutputParser(pydantic_object=Result)
 
 chain = prompt_template | model | parser
 
-result: Result = chain.invoke({"text": clipped_text})
+result = chain.invoke({"text": clipped_text})
 
 # Print result details to the terminal
 print("--- The result as a JSON object ---")
