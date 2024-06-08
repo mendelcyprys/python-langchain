@@ -1,5 +1,5 @@
 --- The result as a JSON object ---
- {
+{
     "summaryList": [
         {
             "missingEntities": "bowhead whale; long-lived mammal",
@@ -61,7 +61,7 @@
 } 
 
 --- Final summary ---
- Research uncovers evolutionary adaptations in the bowhead whale, focusing on cancer resistance mechanisms. The study highlights efficient and accurate DNA repair as a key strategy. CIRBP and RPA2 proteins are key players in enhancing repair fidelity. 
+Research uncovers evolutionary adaptations in the bowhead whale, focusing on cancer resistance mechanisms. The study highlights efficient and accurate DNA repair as a key strategy. CIRBP and RPA2 proteins are key players in enhancing repair fidelity. 
 
 title: DNA repair and anti-cancer mechanisms in the longest-living mammal: the bowhead whale 
 
