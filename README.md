@@ -10,4 +10,4 @@
   
   Fill out with your personal key.
 - Make any desired changes to the code. In particular, you can add a PDF file into the `pdf-files` folder, and change the path in the code to point at it.
-- Run e.g. "python main.py > output.txt", to pipe the output to an output file.
+- Run e.g. "python main.py > summary_output.txt", to pipe the output to an output file.
