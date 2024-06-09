@@ -62,22 +62,86 @@ def generateSummary(src_text: str, model_identifier: str):
     result = chain.invoke({"text": src_text})
     return result
 
+# summary_result = generateSummary(clipped_text, "gpt-3.5-turbo")
 
-summary_result = generateSummary(clipped_text, "gpt-3.5-turbo")
+def print_for_summary(summary_result):
+    print("--- The result as a JSON object ---")
+    print(json.dumps(summary_result, indent=4), "\n")
+    print("--- Final summary ---")
+    print(summary_result["summaryList"][-1]["denserSummary"], "\n")
+
+    for key in [key for key in summary_result.keys() if key != "summaryList"]:
+        print(f"{key}: {summary_result[key]}", "\n")
+
+    print("--- Full summary list ---\n")
+    for summary in summary_result["summaryList"]:
+        print("Missing entities:", summary["missingEntities"])
+        print("The new denser summary:", summary["denserSummary"], "\n")
+
+# print_for_summary(summary_result)
+
+def generateContent(src_text: str, model_identifier: str):
+    model = ChatOpenAI(model=model_identifier)
+
+    prompt_template = ChatPromptTemplate.from_messages(
+        [
+            ("system", prompt_templates.content_chain_system_first),
+            ("user", prompt_templates.content_chain_user_first),
+        ]
+    )
+
+    class Summary(BaseModel):
+        missingEntities: str
+        newSummary: str
+
+    class Result(BaseModel):
+        summaries: List[Summary]
+
+    parser = JsonOutputParser(pydantic_object=Result)
+    chain = prompt_template | model | parser
+    first_result = chain.invoke({"text": src_text})
+
+    ### Debugging output section
+    print("--- Result of first iteration ---\n")
+    for content in first_result["summaries"]:
+        print("--- Iteration ---\n")
+        print(f"Missing entities: {content["missingEntities"]}")
+        print(f"New content:\n{content["newSummary"]}")
+
+    # pull out the final version from the first iteration
+    iteration_text = first_result["summaries"][-1]["newSummary"]
+
+    class Summary(BaseModel):
+        missingEntities: str
+        newSummary: str
+
+    class Result(BaseModel):
+        summaries: List[Summary]
+
+    prompt_template_iteration = ChatPromptTemplate.from_messages(
+        [
+            ("system", prompt_templates.content_chain_system_recursive),
+            ("user", prompt_templates.content_chain_user_recursive),
+        ]
+    )
+    chain_recursive = prompt_template | model | parser
+
+    # repeat the iteration step three times
+    for i in range(3):
+        result = chain_recursive.invoke({"text": src_text, "content": iteration_text})
+        iteration_text = result["summaries"][-1]["newSummary"]
+
+        ### Debugging output section
+        print(f"--- Result of {i + 2} iteration ---\n")
+        for content in result["summaries"]:
+            print("--- Iteration ---\n")
+            print(f"Missing entities: {content["missingEntities"]}")
+            print(f"New content:\n{content["newSummary"]}")
+
+    return iteration_text
 
 
+content_result = generateContent(clipped_text, "gpt-3.5-turbo")
 
-
-# Print result details to the terminal
-print("--- The result as a JSON object ---")
-print(json.dumps(summary_result, indent=4), "\n")
-print("--- Final summary ---")
-print(summary_result["summaryList"][-1]["denserSummary"], "\n")
-
-for key in [key for key in summary_result.keys() if key != "summaryList"]:
-    print(f"{key}: {summary_result[key]}", "\n")
-
-print("--- Full summary list ---\n")
-for summary in summary_result["summaryList"]:
-    print("Missing entities:", summary["missingEntities"])
-    print("The new denser summary:", summary["denserSummary"], "\n")
+print("--- Final text repeated ---\n")
+print(content_result)

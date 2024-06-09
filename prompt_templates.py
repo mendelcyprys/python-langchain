@@ -122,3 +122,129 @@ The JSON should look like this:
 
 Write only valid JSON. Remember that summaryList should be a list of length 5.
 """
+
+
+
+
+
+
+content_chain_system_first = """Your job will be to read a paper and generate blog posts according to specified rules.
+Your output will be in valid JSON.
+The JSON should have the form:
+
+{{
+    summaries: [
+        {{
+            missingEntities: "...",
+            newSummary: "..."
+        }},
+        {{
+            missingEntities: "...",
+            newSummary: "..."
+        }}
+    ]
+}}
+
+"newSummary" should be a text field of length approximately 800 words.
+"""
+
+content_chain_user_first = """<PaperContent>
+{text}
+</PaperContent>
+
+Generate increasingly precise, entity-dense summaries of the above biology research paper.
+Each summary content should be 800 words long and use H2 headings for structure.
+Repeat the following 2 steps 2 times:
+Step 1. Identify 6-8 new informative entities (';' delimited) from the research paper missing from the previous content summary.
+Step 2. Write a new, denser summary of the same length (approximately 800 words), including all previous and new entities.
+A missing entity is:
+- Relevant to the main findings, experimental methods, or conclusions.
+- Specific and concise (5 words or fewer).
+- Novel (not in the previous summary).
+- Faithful (present in the research paper).
+- Located anywhere in the research paper.
+- Entities should never be names of authors. They should be relevant ideas for a summary.
+Guidelines:
+- The first post should be long (~800 words), highly non-specific, and contain little information beyond the marked missing entities. Use verbose language and fillers (e.g., 'this paper discusses') to reach ~800 words.
+- Make every word count: rewrite the previous summary to improve flow and add new entities.
+- Create space with fusion, compression, and removal of uninformative phrases like 'this paper discusses'.
+- Blog posts should include H2 headings for Introduction, (Methods, Results) OR (Main Findings), and Discussion to be highly dense, concise, and self-contained. It should include bullet points for lists of 3 or more items
+- Missing entities can appear anywhere in the new blog post.
+- Never drop entities from the previous post. If space is insufficient, add fewer new entities.
+- Use the same number of words (800) for each post.
+
+Write your output in JSON only.
+The output should be an object containing one key: "summaries".
+"summaries" should be a list of objects, with each object containing the keys "missingEntities" and "newSummary".
+This list is of length 2. 
+The summaries and entities should be text fields generated using the rules outlined above.
+"newSummary" should be a text field of length approximately 800 words.
+Remember to includes sections with H2 headings for Introduction, (Methods, Results) OR (Main Findings), and Discussion.
+"""
+
+
+
+
+
+
+content_chain_system_recursive = """
+You will be given a paper and a previously generated summary, and you will generate a new summary based on a list of rules and requirements.
+Write valid JSON only. The JSON should have the form:
+{{
+    summaries: [
+        {{
+            missingEntities: "...",
+            newSummary: "..."
+        }},
+        {{
+            missingEntities: "...",
+            newSummary: "..."
+        }}
+    ]
+}}
+"""
+
+
+
+
+content_chain_user_recursive = """
+<Paper>
+{text}
+</Paper>
+<PreviousSummary>
+{content}
+</PreviousSummary>
+You will generate increasingly concise, entity-dense versions of the last summary provided above, in a step by step process that you are writing out.
+Repeat the following 2 steps 2 times:
+Step 1. Identify 4-6 informative entities (";" delimited) from the article which are missing from the previously generated summary.
+Step 2. Write a new, denser summary of 800 words which covers every entity and detail from the previous summary plus the missing entities.
+A missing entity is:
+- relevant to the main research paper,
+- specific yet concise (5 words or fewer),
+- novel (not in the previous summary),
+- faithful (present in the article),
+- anywhere (can be located anywhere in the article).
+- should not be the author(s).
+Guidelines:
+- The new summary should be ~800 words long.
+- Make every word count: rewrite the previous summary to improve flow and make space for additional entities.
+- Make space with fusion, compression, and removal of uninformative phrases like "the article discusses".
+- The summaries should become highly dense and concise yet self-contained, i.e., easily understood without the article.
+- Use H2 headings for structure: Introduction, and depending on the nature of the study, either (Methods, Results) if the study is experimental, or (Main Findings) if the study is not experimental, and Discussion.
+- Missing entities can appear anywhere in the new summary.
+- Never drop entities from the previous summary. If space cannot be made, add fewer new entities.
+Remember, use the exact same number of words for each summary.
+Write valid JSON only. The JSON should have the form:
+{{
+    summaries: [
+        {{
+            missingEntities: "...", \\\\ (the missing entities described above)
+            newSummary: "..." \\\\ (A text field containing approximately 800 words)
+        }},
+        {{
+            missingEntities: "...", \\\\ (the missing entities described above)
+            newSummary: "..." \\\\ (A text field containing approximately 800 words)
+        }}
+    ]
+}}
+"""
